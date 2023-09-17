@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Work Timer</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout-validation/2.0.4/knockout.validation.min.js"
+        integrity="sha512-b99MDNv5TqiZtPKH2UeHzDAVydmgrOJEPtaPPEF8AgV86eYyqINFI/K7/7f0+R4WNTAVv8KvvpjwfOYHv5rd5g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+    <div id="knockout-app" class="content">
+        <header>
+            <h1>Work Timer</h1>
+        </header>
+        <section class="project">
+            <div class="select-project">
+                <h3>Select project</h3>
+                <div class="select-container">
+                    <select id="subscription" data-bind="value: projectName">
+                        <option value="">Please project</option>
+                        <option value="project1">Project 1</option>
+                        <option value="project2">Project 2</option>
+                        <option value="project3">Project 3</option>
+                    </select>
+                    <svg class="select_arrow" version="1.1" xmlns="http://www.w3.org/2000/svg" width="30" viewBox="0 0 768 768">
+                        <path fill="#222" d="M223.5 319.5h321l-160.5 160.5z"></path>
+                    </svg>
+                </div>
+                <button data-bind="click: setWork">Set</button>
+            </div>
+            <div class="">
+                <input type="text" id="lname" name="new_project" placeholder="Add name of project">
+                <button>Add project</button>
+            </div>
+        </section>
+        <section>
+            <h1>Current work</h1>
+            <div class="task-items" data-bind="foreach: currentWorks">
+                <task 
+                    params="itemIndex: $index, action: $parent.removeItem, complete: $parent.addWorkInDailySpendItems, project: $data.project, time: $data.time">
+                </task>
+            </div>
+        </section>
+        <section class="daily-spend-items">
+            <h1>Daily Spent time</h1>
+            <div class="task-items">
+                <div class="columns">
+                    <h3>Project</h3>
+                    <h3>Time</h3>
+                    <h3>Description</h3>
+                    <button data-bind="click: saveTasks">Save time</button>
+                </div>
+            </div>
+            <div class="total-time">
+                <h1>Total time: <span data-bind="text: timeFormatString"></span></h1>
+            </div>
+        </section>
+        <script src="main.js"></script>
+    </div>
+</body>
+</html>
