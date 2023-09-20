@@ -34,6 +34,30 @@ function createTaskDomElement(task,time,description) {
     return tasksDiv;
 }
 
+function millisecondsToHMS(milliseconds) {
+    // Calculate hours, minutes, and seconds
+    var hours = Math.floor(milliseconds / 3600000); // 1 hour = 3600000 milliseconds
+    var minutes = Math.floor((milliseconds % 3600000) / 60000); // 1 minute = 60000 milliseconds
+    var seconds = Math.floor((milliseconds % 60000) / 1000); // 1 second = 1000 milliseconds
+
+    // Format the result as "hours:minutes:seconds"
+    var formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    return formattedTime;
+}
+
+function getFormatDateString(date) {
+    let hrs = date.getHours();
+    let mins = date.getMinutes();
+    let secs = date.getSeconds();
+
+    if (secs < 10) secs = '0' + secs;
+    if (mins < 10) mins = '0' + mins;
+    if (hrs < 10) hrs = '0' + hrs;
+
+    return `${hrs}:${mins}:${secs}`;
+}
+
 function getAllDailyWorks() {
     var container = document.querySelectorAll('.task-items .task');
 
@@ -55,6 +79,10 @@ function getAllDailyWorks() {
     console.log(JSON.stringify(tasks));
 }
 
+function getCurrentDate() {
+    return new Date();
+}
+
 function WorkTimerViewModel() {
     var self = this;
     self.currentWorks = ko.observableArray([]);
@@ -69,7 +97,7 @@ function WorkTimerViewModel() {
         }
         self.currentWorks.push({
             project: self.projectName(),
-            time: INITIAL_TIMER_FORMAT
+            time: getFormatDateString(getCurrentDate())
         })
     }
 
@@ -120,7 +148,7 @@ ko.components.register("task", {
         <span id="project-title" data-bind="text: projectName"></span>
         <input type="text" id="task-decription" name="task-description" placeholder="Add description">
         <div class="watch">
-            <div class="time" data-bind="text: time">
+            <div class="time" data-bind="text: timeFormat">
             </div>
             <div class="controls">
                 <button id="start" data-bind="click: start, visible: !isWorkTimer()">Start</button>
@@ -134,30 +162,35 @@ ko.components.register("task", {
         var self = this;
         self.isWorkTimer = ko.observable(false);
 
-        let seconds = 0;
-        let interval = null;
-
         self.projectName = ko.observable(params.project);
-        self.time = ko.observable(INITIAL_TIMER_FORMAT);
+        self.starTime = ko.observable(getCurrentDate());
+        self.timeFormat = ko.observable(getFormatDateString(getCurrentDate()));
+        self.startPause = getCurrentDate();
         self.description = ko.observable("");
-
-        self.timer = function () {
-            seconds++;
-            self.time(getFormatTimerString(seconds));
-        }
+        self.isPauseActive = false;
 
         self.start = function () {
-            if (interval) {
+            if (self.isWorkTimer()) {
                 return;
             }
-            self.isWorkTimer(true);
-            interval = setInterval(self.timer, 1000);
+            
+            if (self.isPauseActive) {
+                var timeDifference = getCurrentDate() - self.startPause;
+                self.starTime(new Date(self.starTime().getTime() + timeDifference));
+    
+                self.timeFormat(getFormatDateString(self.starTime()));
+                self.isWorkTimer(true);
+            } else {
+                self.isWorkTimer(true);
+                self.starTime(getCurrentDate());
+                self.timeFormat(getFormatDateString(self.starTime()));
+            }
         }
 
         self.pause = function () {
-            clearInterval(interval);
-            interval = null;
             self.isWorkTimer(false);
+            self.startPause = getCurrentDate();
+            self.isPauseActive = true;
         }
 
         self.stop = function (data,event) {
@@ -169,12 +202,11 @@ ko.components.register("task", {
             let watch = event.target.parentNode.parentNode;
             self.description(watch.parentElement.childNodes[3].value);
 
-            params.complete(params.itemIndex(),self.time(), self.description());
+            let totalTimeTask = getCurrentDate() - self.starTime();
+            params.complete(params.itemIndex(),millisecondsToHMS(totalTimeTask), self.description());
 
             self.pause();
-            seconds = 0;
             self.isWorkTimer(false);
-            self.time(INITIAL_TIMER_FORMAT);
         }
 
         self.remove = function() {
