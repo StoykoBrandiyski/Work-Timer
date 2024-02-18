@@ -69,6 +69,7 @@ function getAllDailyWorks() {
             description = element.children[2].textContent;
         }
 
+		task.sort();
         tasks.push({
             project:  element.children[0].textContent,
             time: element.children[1].textContent,
@@ -83,12 +84,22 @@ function getCurrentDate() {
     return new Date();
 }
 
+function sortProjectNameInSelect() {
+    let selectContainer = document.getElementById('subscription');
+    let options = [...document.querySelectorAll('#subscription option')];
+
+
+    options.sort((a, b) => a.innerText > b.innerText ? 1 : -1)
+            .forEach(node => selectContainer.appendChild(node));
+}
+
 function WorkTimerViewModel() {
     var self = this;
     self.currentWorks = ko.observableArray([]);
     self.totalTimeSeconds = ko.observable(0);
     self.timeFormatString = ko.observable(INITIAL_TIMER_FORMAT);
 
+    sortProjectNameInSelect();
     self.projectName = ko.observable("");
 
     self.setWork = function () {
